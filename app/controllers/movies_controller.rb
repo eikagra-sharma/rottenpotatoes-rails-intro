@@ -12,9 +12,13 @@ class MoviesController < ApplicationController
 
   def index
     sort_by = params[:sort]
-    puts sort_by
-    if sort_by != 'title'
+    @ratings_dict = Hash.new
+    @all_ratings = Movie.all_ratings()
+    if sort_by != nil
       @movies = Movie.order(sort_by)
+    elsif @ratings_dict != nil
+      @ratings_dict = params[:ratings]
+      @movies = Movie.select { |movie| @ratings_dict.key?(movie.rating) }
     else
       @movies = Movie.all
     end
