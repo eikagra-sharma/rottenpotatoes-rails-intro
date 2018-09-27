@@ -10,18 +10,37 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
+  # Reference: https://github.com/danielhex/rottenpotatoes/blob/master/app/controllers/movies_controller.rb
   def index
-    sort_by = params[:sort]
-    @ratings_dict = Hash.new
-    @all_ratings = Movie.all_ratings()
-    if sort_by != nil
-      @movies = Movie.order(sort_by)
-    elsif @ratings_dict != nil
-      @ratings_dict = params[:ratings]
-      @movies = Movie.select { |movie| @ratings_dict.key?(movie.rating) }
-    else
-      @movies = Movie.all
+    if(!params.key?(:sort) && !params.key?(:ratings))
+      if(session.key?(:sort) || session.key?(:ratings))
+        sort_by = session[:sort]
+        @ratings_dict = session[:ratings]
+      end
     end
+    @sort = params.key?(:sort) ? (session[:sort] = params[:sort]) : session[:sort]
+    if params.key?(:sort)
+      sort_by = params[:sort]
+      session[:sort] = params[:sort]
+    else
+      sort_by = session[:sort]
+    end
+    
+    @all_ratings = Movie.all_ratings.keys
+    @ratings_dict = params[:ratings]
+    if(@ratings_dict != nil)
+      session[:ratings] = @ratings_dict
+    else
+      if(!params.key?(:commit) && !params.key?(:sort))
+        @ratings_dict = Movie.all_ratings
+        session[:ratings] = Movie.all_ratings
+      else
+        @ratings_dict = session[:ratings]
+      end
+    end
+    @ratings_dict = Movie.all_ratings unless @ratings_dict != nil
+    
+    @movies = Movie.order(sort_by).select { |movie| @ratings_dict.key?(movie.rating) }
   end
 
   def new
