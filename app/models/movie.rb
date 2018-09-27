@@ -1,5 +1,6 @@
 class Movie < ActiveRecord::Base
     def self.all_ratings
-        return {'G'=>1,'PG'=>1,'PG-13'=>1,'R'=>1}
+        rating_array = Movie.pluck('DISTINCT rating')
+        Hash[rating_array.collect { |rating| [rating, 1] } ]
     end
 end
